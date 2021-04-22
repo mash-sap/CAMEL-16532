@@ -12,3 +12,11 @@ Camel CXF: Trying to start already registered endpoint, will unregister existing
 
 <br>
 Expected behavior: After step3, step4 should still succeed and return HTTP 200 with response from Route1 (FIRST)
+
+
+
+<br><br><br>
+Add following VM args on startup to connect via java/bin/jconsole<br>
+-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9913 -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=localhost -Dcom.sun.management.jmxremote.authenticate=false
+<br><br>
+With the proposed change in pull-request https://github.com/apache/camel/pull/5454, the failed start in step 2) will leave an dangling mbean as described in https://issues.apache.org/jira/browse/CAMEL-10914. However the original problem of 10914 (start/stop causing danling mbeans) stays fixed.
