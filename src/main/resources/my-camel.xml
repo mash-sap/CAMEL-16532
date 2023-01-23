@@ -20,20 +20,21 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:cxf="http://camel.apache.org/schema/cxf"
+       xmlns:p1="http://camel.apache.org/cxf/jaxws/provider"
+       xmlns:sap-cxf-generic-request-reply="http://camel.apache.org/cxf/jaxws/provider"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
 
        http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
-    <bean class="de.mash.demo.MyBean" id="myBean"/>
-
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
 
     <cxf:cxfEndpoint id="soapMessageEndpoint"
-                     wsdlURL="/requestreply.wsdl"
-                     address="/manuel">
+                     wsdlURL="/soap11.wsdl"
+                     endpointName="p1:port"
+                     serviceName="p1:service"
+                     address="/myendpoint">
         <cxf:properties>
             <entry key="dataFormat" value="PAYLOAD"/>
             <entry key="synchronous" value="true"/>
@@ -41,38 +42,46 @@
     </cxf:cxfEndpoint>
 
     <cxf:cxfEndpoint id="soapMessageEndpoint2"
-                     wsdlURL="/requestreply.wsdl"
-                     address="/manuel">
+                     wsdlURL="/soap12.wsdl"
+                     endpointName="sap-cxf-generic-request-reply:port12"
+                     serviceName="sap-cxf-generic-request-reply:service"
+                     address="/myendpoint">
+
+        <!--    <cxf:cxfEndpoint id="soapMessageEndpoint2"-->
+        <!--                     wsdlURL="/soap12.wsdl"-->
+        <!--                     endpointName="p1:port"-->
+        <!--                     serviceName="p1:service"-->
+        <!--                     address="/myendpoint">-->
         <cxf:properties>
             <entry key="dataFormat" value="PAYLOAD"/>
             <entry key="synchronous" value="true"/>
         </cxf:properties>
     </cxf:cxfEndpoint>
 
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+    <bean class="de.mash.demo.MyBean" id="myBean"/>
+        <bean class="de.mash.demo.MyProcessor" id="myProcessor"/>
+    <bean class="de.mash.demo.MyNotifier" id="myNotifier"/>
+
     <camelContext id="test_context" xmlns="http://camel.apache.org/schema/spring">
         <route id="eager">
             <from uri="cxf:bean:soapMessageEndpoint"/>
+                        <onCompletion>
+                            <process ref="myProcessor"/>
+                        </onCompletion>
             <setBody>
-                <constant>&lt;ns1:invokeResponse xmlns:ns1=&quot;http://cxf.component.camel.apache.org/&quot;&gt;FIRST&lt;/ns1:invokeResponse&gt;</constant>
+<!--                <constant>&lt;ns1:invokeResponse xmlns:ns1=&quot;http://cxf.component.camel.apache.org/&quot;&gt;FIRST&lt;/ns1:invokeResponse&gt;</constant>-->
+                                <constant>asd</constant>
             </setBody>
+
         </route>
 
-
-        <route id="lazy" autoStartup="false">
+        <route id="lazy" autoStartup="true">
             <from uri="cxf:bean:soapMessageEndpoint2"/>
             <setBody>
                 <constant>&lt;ns1:invokeResponse xmlns:ns1=&quot;http://cxf.component.camel.apache.org/&quot;&gt;SECOND&lt;/ns1:invokeResponse&gt;</constant>
             </setBody>
         </route>
-
-        <route id="hello">
-            <from uri="timer:hello?period=60000"/>
-            <transform>
-                <method ref="myBean" method="saySomething"/>
-            </transform>
-            <to uri="stream:out"/>
-        </route>
-
     </camelContext>
 
 </beans>

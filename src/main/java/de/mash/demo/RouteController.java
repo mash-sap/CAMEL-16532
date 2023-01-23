@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class RouteController {
     @Autowired
     CamelContext camelContext;
+    boolean routeIsRunning =true;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
@@ -28,8 +29,14 @@ public class RouteController {
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/start", method = RequestMethod.GET)
     public void start() throws Exception {
-        ((SpringCamelContext) camelContext).startRoute("lazy");
-        System.out.println("route 'lazy' activated");
+        if(routeIsRunning){
+            ((SpringCamelContext) camelContext).stopRoute("lazy");
+            System.out.println("route 'lazy' stopped");
+        }else{
+            ((SpringCamelContext) camelContext).startRoute("lazy");
+            System.out.println("route 'lazy' started");
+        }
+        routeIsRunning = !routeIsRunning;
     }
 
 }

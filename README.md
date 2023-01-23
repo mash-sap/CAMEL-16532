@@ -1,22 +1,13 @@
-# CAMEL-16532
-Camel CXF: Trying to start already registered endpoint, will unregister existing one
+# CAMEL-18965
+Camel CXF: OnCompletionHandler not called anymore.
+This application provides an endpoint (http://127.0.0.1:9900/cxf/myendpoint). In Camel we will set a non-XML payload which will cause the message to fail (SOAP fault). We have set an onCompletionHandler which will just do a System.out. Since Camel 3.11.1, this handler will not be invoked anymore.
+ 
+ Reproduce
+ 
 1) Run DemoApplication to startup the tomcat and camel context
-2) Do a POST request to http://127.0.0.1:9900/cxf/manuel with following payload. Response should be HTTP 200 (response body comes from Route1: FIRST)<br>
+2) Do a GET request to http://127.0.0.1:9900/cxf/myendpoint with following payload. Response should be HTTP 500<br>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><n2:invoke xmlns:n2="http://cxf.component.camel.apache.org/">test</n2:invoke></soap:Body></soap:Envelope>
 
-3) Do GET request to http://localhost:9900/route/start to start Route2 with a CXF endpoint that is already registered. HTTP 500 is expected. This will unregister the existing endpoint from Route1 (unexpected behavior)
-4) Do POST request from step 2. Now a HTTP 404 is returned (the endpoint has been unregistered :()
-5) Do GET request from step 3 to start the Route2 again. This time it will succeeed HTTP 200. Route2 is started
-6) Do POST request from step 2) and get HTTP 200 response (response body comes from Route2: SECOND)
-
-
-<br>
-Expected behavior: After step3, step4 should still succeed and return HTTP 200 with response from Route1 (FIRST)
-
-
-
-<br><br><br>
-Add following VM args on startup to connect via java/bin/jconsole<br>
--Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9913 -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=localhost -Dcom.sun.management.jmxremote.authenticate=false
-<br><br>
-With the proposed change in pull-request https://github.com/apache/camel/pull/5454, the failed start in step 2) will leave an dangling mbean as described in https://issues.apache.org/jira/browse/CAMEL-10914. However the original problem of 10914 (start/stop causing danling mbeans) stays fixed.
+3) Check the console output to see onCompletion Processor was called. Find in the console following printout: <br>######################################## processor called ####################################
+4) Update the pom.xml and update from Camel 3.11.0 to 3.11.1, reimport the libraries and restart the application
+5) Re-execute the GET request --> OnCompletionProcessor is not called anymore (no System.out)
